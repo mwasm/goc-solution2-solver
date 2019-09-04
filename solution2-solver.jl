@@ -1,46 +1,46 @@
-using Distributed
+using Distributed # Standard library for distributed memory parallel computing
 
-@everywhere using Ipopt
+@everywhere using Ipopt # Library for non-linear optimization of continuous systems
 
-include("code-2-lib/parsers.jl")
-include("code-2-lib/lib.jl")
+include("code-2-lib/parsers.jl") # Insert the contents of parsers.jl here
+include("code-2-lib/lib.jl") # Insert the contents of lib.jl here.
 
-function compute_solution2(con_file::String, inl_file::String, raw_file::String, rop_file::String, time_limit::Int, scoring_method::Int, network_model::String; output_dir::String="", scenario_id::String="none")
-    time_data_start = time()
-    PowerModels.silence()
-    goc_data = parse_goc_files(con_file, inl_file, raw_file, rop_file, scenario_id=scenario_id)
-    network = build_pm_model(goc_data)
+function compute_solution2(con_file::String, inl_file::String, raw_file::String, rop_file::String, time_limit::Int, scoring_method::Int, network_model::String; output_dir::String="", scenario_id::String="none") # Function named "compute_solution2"
+    time_data_start = time() # To note the start time
+    PowerModels.silence() # Suppresses information and warning messages output by PowerModels
+    goc_data = parse_goc_files(con_file, inl_file, raw_file, rop_file, scenario_id=scenario_id) # Parse the input files
+    network = build_pm_model(goc_data) # Calls "build_pm_model" function to make model based on input data
 
-    sol = read_solution1(network, output_dir=output_dir)
-    PowerModels.update_data!(network, sol)
+    sol = read_solution1(network, output_dir=output_dir) # Reads the base solution
+    PowerModels.update_data!(network, sol) # To update network with the values from sol
 
-    check_network_solution(network)
+    check_network_solution(network) # Checks feasibility criteria of network solution, produces an error if a problem is found
 
-    network_tmp = deepcopy(network)
-    balance = compute_power_balance_deltas!(network_tmp)
+    network_tmp = deepcopy(network) # Copies all fields from "network"
+    balance = compute_power_balance_deltas!(network_tmp) # Compute power balance deltas for active & reactive power
 
-    if balance.p_delta_abs_max > 0.01 || balance.q_delta_abs_max > 0.01
+    if balance.p_delta_abs_max > 0.01 || balance.q_delta_abs_max > 0.01 # Check the delta limit for active & reactive power
         error(LOGGER, "solution1 power balance requirements not satified (all power balance values should be below 0.01). $(balance)")
     end
-    load_time = time() - time_data_start
+    load_time = time() - time_data_start # Find difference between the start & end time
 
     ###### Prepare Solution 2 ######
 
-    time_contingencies_start = time()
+    time_contingencies_start = time() # To note the contingencies start time
 
-    gen_cont_total = length(network["gen_contingencies"])
-    branch_cont_total = length(network["branch_contingencies"])
-    cont_total = gen_cont_total + branch_cont_total
+    gen_cont_total = length(network["gen_contingencies"]) # Finds how many generator contingencies
+    branch_cont_total = length(network["branch_contingencies"])  # Finds how many branch contingencies
+    cont_total = gen_cont_total + branch_cont_total # Finds total contingencies
 
-    cont_order = contingency_order(network)
+    cont_order = contingency_order(network) # To retrieve the order of contingency
 
-    workers = Distributed.workers()
+    workers = Distributed.workers() # Retrieve the workers
 
-    process_data = []
+    process_data = [] # An empty dic.
 
-    cont_per_proc = cont_total/length(workers)
+    cont_per_proc = cont_total/length(workers) # Number of contingencies per procs
 
-    for p in 1:length(workers)
+    for p in 1:length(workers) 
         cont_start = trunc(Int, ceil(1+(p-1)*cont_per_proc))
         cont_end = min(cont_total, trunc(Int,ceil(p*cont_per_proc)))
         pd = (
@@ -54,23 +54,23 @@ function compute_solution2(con_file::String, inl_file::String, raw_file::String,
             output_dir = output_dir,
             cont_range = cont_start:cont_end,
         )
-        push!(process_data, pd)
+        push!(process_data, pd) # Push pd to process_data dic.
     end
 
     for (i,pd) in enumerate(process_data)
         info(LOGGER, "worker task $(pd.pid): $(length(pd.cont_range)) / $(pd.cont_range)")
     end
 
-    solution2_files = pmap(solution2_solver, process_data, retry_delays = zeros(3))
-    sort!(solution2_files)
+    solution2_files = pmap(solution2_solver, process_data, retry_delays = zeros(3)) # Parallel mapping 
+    sort!(solution2_files) # In-place sorting 
     #println("pmap result: $(solution2_files)")
 
-    time_contingencies = time() - time_contingencies_start
+    time_contingencies = time() - time_contingencies_start # Calculates time difference
     info(LOGGER, "contingency eval time: $(time_contingencies)")
     info(LOGGER, "time per contingency: $(time_contingencies/cont_total)")
 
     info(LOGGER, "combine $(length(solution2_files)) solution2 files")
-    combine_files(solution2_files, "solution2.txt"; output_dir=output_dir)
+    combine_files(solution2_files, "solution2.txt"; output_dir=output_dir) # Adds solution2.txt to output directory
     remove_files(solution2_files)
 
 
