@@ -52,15 +52,15 @@ function find_goc_files(ini_file; scenario_id="")
 
     #println(ini_dir)
     scenario_dirs = [file for file in readdir(ini_dir) if isdir(joinpath(ini_dir, file))]
-    scenario_dirs = sort(scenario_dirs)
+    scenario_dirs = sort(scenario_dirs) # Sort the scenario_dirs
     #println(scenario_dirs)
 
-    if length(scenario_id) == 0
-        scenario_id = scenario_dirs[1]
-        info(LOGGER, "no scenario specified, selected directory \"$(scenario_id)\"")
+    if length(scenario_id) == 0 # Checks the length of scenario_id if it is equal to zero
+        scenario_id = scenario_dirs[1] # Assigns the value of scenario_dirs[1] to scenario_id
+        info(LOGGER, "no scenario specified, selected directory \"$(scenario_id)\"") # If scenario_id is zero then no scenario is specified.
     else
-        if !(scenario_id in scenario_dirs)
-            error(LOGGER, "$(scenario_id) not found in $(scenario_dirs)")
+        if !(scenario_id in scenario_dirs) # Checks whether scenario_id is in scenario_dirs
+            error(LOGGER, "$(scenario_id) not found in $(scenario_dirs)") # Error message if scenario_id not found.
         end
     end
 
