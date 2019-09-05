@@ -62,16 +62,16 @@ function compute_solution2(con_file::String, inl_file::String, raw_file::String,
     end
 
     solution2_files = pmap(solution2_solver, process_data, retry_delays = zeros(3)) # Parallel mapping
-    sort!(solution2_files) # In-place sorting
+    sort!(solution2_files) # In-place sorting: over-write the existing file after sorting
     #println("pmap result: $(solution2_files)")
 
     time_contingencies = time() - time_contingencies_start # Calculates time difference
-    info(LOGGER, "contingency eval time: $(time_contingencies)")
-    info(LOGGER, "time per contingency: $(time_contingencies/cont_total)")
+    info(LOGGER, "contingency eval time: $(time_contingencies)") # Total evaluation time for contingencies
+    info(LOGGER, "time per contingency: $(time_contingencies/cont_total)") # How much evaluation time per contingency
 
     info(LOGGER, "combine $(length(solution2_files)) solution2 files")
-    combine_files(solution2_files, "solution2.txt"; output_dir=output_dir) # Combining smaller solutions to make a big file and Adding solution2.txt to output directory
-    remove_files(solution2_files)
+    combine_files(solution2_files, "solution2.txt"; output_dir=output_dir) # Combines the solution files and adds solution2.txt to output directory
+    remove_files(solution2_files) # Removes the redundant files
 
 
     println("")
@@ -100,20 +100,21 @@ function compute_solution2(con_file::String, inl_file::String, raw_file::String,
 end
 
 
-@everywhere function solution2_solver(process_data)
+@everywhere function solution2_solver(process_data) # Function "solution2_solver" takes "process_data" as input argument
     #println(process_data)
-    time_data_start = time()
-    PowerModels.silence()
+    time_data_start = time() # To note the start time
+    PowerModels.silence() # Suppresses information and warning messages output by PowerModels
     goc_data = parse_goc_files(
         process_data.con_file, process_data.inl_file, process_data.raw_file,
-        process_data.rop_file, scenario_id=process_data.scenario_id)
-    network = build_pm_model(goc_data)
+        process_data.rop_file, scenario_id=process_data.scenario_id) # Parsing the input files
+    network = build_pm_model(goc_data) # Builds the model based on the input data (goc_data)
 
-    sol = read_solution1(network, output_dir=process_data.output_dir)
-    PowerModels.update_data!(network, sol)
-    correct_voltage_angles!(network)
+    sol = read_solution1(network, output_dir=process_data.output_dir) # Reads the base solution
+    PowerModels.update_data!(network, sol) # To update network with the values from sol
+    correct_voltage_angles!(network) # Correct the voltage angles. Assumes there is one reference bus and one connected component and adjusts voltage
+# angles to be centered around zero at the reference bus.
 
-    time_data = time() - time_data_start
+    time_data = time() - time_data_start # Calculate the time difference between current time and start time
 
     for (i,bus) in network["bus"]
         if haskey(bus, "evhi")
@@ -130,7 +131,8 @@ end
         end
     end
 
-    contingencies = contingency_order(network)[process_data.cont_range]
+    contingencies = contingency_order(network)[process_data.cont_range] # Build a static ordering of all contigencies
+
 
     for (i,branch) in network["branch"]
         g, b = PowerModels.calc_branch_y(branch)
@@ -141,7 +143,7 @@ end
         branch["ti"] = ti
     end
 
-    bus_gens = gens_by_bus(network)
+    bus_gens = gens_by_bus(network) # Function to check the bus status
 
     network["delta"] = 0
     for (i,bus) in network["bus"]
@@ -156,91 +158,93 @@ end
         gen["pg_base"] = gen["pg"]
         gen["pg_start"] = gen["pg"]
         gen["qg_start"] = gen["qg"]
-        gen["pg_fixed"] = false
-        gen["qg_fixed"] = false
+        gen["pg_fixed"] = false # To accomodate the contingencies, generator active power is not fixed.
+        gen["qg_fixed"] = false # To accomodate the contingencies, generator reactive power is not fixed.
     end
 
     #nlp_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, mu_init=1e-6, hessian_approximation="limited-memory", print_level=0)
-    nlp_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, print_level=0)
+    nlp_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, print_level=0) # Uses JuMP built-in optimizer
     #nlp_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6)
     #nlp_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, hessian_approximation="limited-memory")
 
 
-    pad_size = trunc(Int, ceil(log(10,process_data.processes)))
-    padded_pid = lpad(string(process_data.pid), pad_size, "0")
-    solution_filename = "solution2-$(padded_pid).txt"
+    pad_size = trunc(Int, ceil(log(10,process_data.processes))) # Finding the padding size
+    padded_pid = lpad(string(process_data.pid), pad_size, "0") # (lpad - left pad) lpad(string, n, "p") Make a string at least n columns wide when printed, by padding on the left with copies of p.
 
-    if length(process_data.output_dir) > 0
-        solution_path = joinpath(process_data.output_dir, solution_filename)
+
+    solution_filename = "solution2-$(padded_pid).txt" # Assigning the name to the solutin file
+
+    if length(process_data.output_dir) > 0 # Checks the length of output_dir in process_data dic.
+        solution_path = joinpath(process_data.output_dir, solution_filename) # If there is content in output_dir then joins path of solutin_filename & output_dir
     else
         solution_path = solution_filename
     end
-    if isfile(solution_path)
+    if isfile(solution_path) # Checks the existence of solution_path
         warn(LOGGER, "removing existing solution2 file $(solution_path)")
         rm(solution_path)
     end
-    open(solution_path, "w") do sol_file
-        # creates an empty file in the case of workers without contingencies
+    open(solution_path, "w") do sol_file # creates an empty file in the case of workers without contingencies
+
     end
 
     #network_tmp = deepcopy(network)
     for cont in contingencies
-        if cont.type == "gen"
-            info(LOGGER, "working on: $(cont.label)")
-            time_start = time()
-            network_tmp = deepcopy(network)
-            debug(LOGGER, "contingency copy time: $(time() - time_start)")
+        if cont.type == "gen" # Checks if there is contingency of generator
+            info(LOGGER, "working on: $(cont.label)") # Gives the current status of what is going on
+            time_start = time() # To note the start time
+            network_tmp = deepcopy(network) # Copies all fields from "network"
+            debug(LOGGER, "contingency copy time: $(time() - time_start)") # How much time for contingency copy
             network_tmp["cont_label"] = cont.label
 
             cont_gen = network_tmp["gen"]["$(cont.idx)"]
             cont_gen["contingency"] = true
-            cont_gen["gen_status"] = 0
+            cont_gen["gen_status"] = 0 # gen_status during contingency
             pg_lost = cont_gen["pg"]
 
-            time_start = time()
-            result = run_fixpoint_pf_v2_2!(network_tmp, pg_lost, ACRPowerModel, nlp_solver, iteration_limit=5)
-            debug(LOGGER, "second-stage contingency solve time: $(time() - time_start)")
+            time_start = time() # To note the start time
+            result = run_fixpoint_pf_v2_2!(network_tmp, pg_lost, ACRPowerModel, nlp_solver, iteration_limit=5) # Core algorithm that computes starting guess for delta and runs initial AC-PF
+            debug(LOGGER, "second-stage contingency solve time: $(time() - time_start)") # Finds the time spent for 2nd contingency solution
 
-            result["solution"]["label"] = cont.label
-            result["solution"]["feasible"] = (result["termination_status"] == LOCALLY_SOLVED)
-            result["solution"]["cont_type"] = "gen"
-            result["solution"]["cont_comp_id"] = cont.idx
+            result["solution"]["label"] = cont.label # Mentions the contingency label
+            result["solution"]["feasible"] = (result["termination_status"] == LOCALLY_SOLVED) # If status is true then solutin is feasible
+            result["solution"]["cont_type"] = "gen" #  Mention the contingency type
+            result["solution"]["cont_comp_id"] = cont.idx # Mentions the contingency index
 
-            result["solution"]["gen"]["$(cont.idx)"]["pg"] = 0.0
-            result["solution"]["gen"]["$(cont.idx)"]["qg"] = 0.0
+            result["solution"]["gen"]["$(cont.idx)"]["pg"] = 0.0 # During contingency, generator active power is zero
+            result["solution"]["gen"]["$(cont.idx)"]["qg"] = 0.0 # During contingency, generator reactive power is zero
 
-            correct_contingency_solution!(network, result["solution"])
-            open(solution_path, "a") do sol_file
-                sol2 = write_solution2_contingency(sol_file, network, result["solution"])
+            correct_contingency_solution!(network, result["solution"]) #  Used for post-processing. Various fallbacks if any step fails
+            open(solution_path, "a") do sol_file # Opens the sol_file
+                sol2 = write_solution2_contingency(sol_file, network, result["solution"]) # Writes the contingency solutin 2
             end
 
             network_tmp["gen"]["$(cont.idx)"]["gen_status"] = 1
-        elseif cont.type == "branch"
-            info(LOGGER, "working on: $(cont.label)")
-            time_start = time()
-            network_tmp = deepcopy(network)
-            debug(LOGGER, "contingency copy time: $(time() - time_start)")
+        elseif cont.type == "branch" # Checks if there is contingency of branch
+            info(LOGGER, "working on: $(cont.label)")  # Gives the current status of what is going on
+            time_start = time() # To note the start time
+            network_tmp = deepcopy(network)  # Copies all fields from "network"
+            debug(LOGGER, "contingency copy time: $(time() - time_start)") # How much time for contingency copy
             network_tmp["cont_label"] = cont.label
-            network_tmp["branch"]["$(cont.idx)"]["br_status"] = 0
+            network_tmp["branch"]["$(cont.idx)"]["br_status"] = 0 # branch status during contingency
 
 
-            time_start = time()
-            result = run_fixpoint_pf_v2_2!(network_tmp, 0.0, ACRPowerModel, nlp_solver, iteration_limit=5)
-            debug(LOGGER, "second-stage contingency solve time: $(time() - time_start)")
+            time_start = time()  # To note the start time
+            result = run_fixpoint_pf_v2_2!(network_tmp, 0.0, ACRPowerModel, nlp_solver, iteration_limit=5) # Core algorithm that computes starting guess for delta and runs initial AC-PF
+            debug(LOGGER, "second-stage contingency solve time: $(time() - time_start)") # Finds the time spent for 2nd contingency solution
 
-            result["solution"]["label"] = cont.label
-            result["solution"]["feasible"] = (result["termination_status"] == LOCALLY_SOLVED)
-            result["solution"]["cont_type"] = "branch"
-            result["solution"]["cont_comp_id"] = cont.idx
+            result["solution"]["label"] = cont.label # Mentions the contingency label
+            result["solution"]["feasible"] = (result["termination_status"] == LOCALLY_SOLVED) # If status is true then solutin is feasible
+            result["solution"]["cont_type"] = "branch" # Mention the contingency type
+            result["solution"]["cont_comp_id"] = cont.idx # Mentions the contingency index
 
-            correct_contingency_solution!(network, result["solution"])
-            open(solution_path, "a") do sol_file
-                sol2 = write_solution2_contingency(sol_file, network, result["solution"])
+            correct_contingency_solution!(network, result["solution"]) # Used for post-processing. Various fallbacks if any step fails
+            open(solution_path, "a") do sol_file # Opens the sol_file
+                sol2 = write_solution2_contingency(sol_file, network, result["solution"]) # Writes the contingency solutin 2
             end
 
             network_tmp["branch"]["$(cont.idx)"]["br_status"] = 1
         else
-            @assert("contingency type $(cont.type) not known")
+            @assert("contingency type $(cont.type) not known") #  If contingency other than generator or branch then it is unknown
         end
     end
 

@@ -1,17 +1,17 @@
-@everywhere using PowerModels
+@everywhere using PowerModels # Uses Julia package for Steady-State Power Network Optimization.
 
 ##### Generic Helper Functions #####
 
 function remove_comment(string)
-    return split(string, "/")[1]
+    return split(string, "/")[1] # Split str into an array of substrings on occurrences of the delimiter (eg ,)
 end
 
 
 ##### GOC Initialization File Parser (.ini) #####
 
-function parse_goc_files(ini_file; scenario_id="")
-    files, scenario_id = find_goc_files(ini_file, scenario_id=scenario_id)
-    return parse_goc_files(files["con"], files["inl"], files["raw"], files["rop"], ini_file=ini_file, scenario_id=scenario_id)
+function parse_goc_files(ini_file; scenario_id="") # Function to parse the input files
+    files, scenario_id = find_goc_files(ini_file, scenario_id=scenario_id) # Calls the function named "find_goc_files"
+    return parse_goc_files(files["con"], files["inl"], files["raw"], files["rop"], ini_file=ini_file, scenario_id=scenario_id) # Returns the output of function "parse_goc_files"
 end
 
 function find_goc_files(ini_file; scenario_id="")
@@ -22,18 +22,18 @@ function find_goc_files(ini_file; scenario_id="")
         "inl" => "x"
     )
 
-    if !endswith(ini_file, ".ini")
-        warn(LOGGER, "given init file does not end with .ini, $(ini_file)")
+    if !endswith(ini_file, ".ini") # Checks for the format of file
+        warn(LOGGER, "given init file does not end with .ini, $(ini_file)") # Gives warning if the file format is not correct
     end
 
-    open(ini_file) do io
-        for line in readlines(io)
-            line = strip(line)
+    open(ini_file) do io # Opens the ini_file
+        for line in readlines(io) 
+            line = strip(line) # Strip fucntion is used to trim both leading & trailing white space.
             #println(line)
             if startswith(line, "[INPUTS]")
                 # do nothing
             elseif startswith(line, "ROP")
-                files["rop"] = strip(split(line,"=")[2])
+                files["rop"] = strip(split(line,"=")[2]) # Split returns a list of the words in the string, using sep as the delimiter string
             elseif startswith(line, "RAW")
                 files["raw"] = strip(split(line,"=")[2])
             elseif startswith(line, "CON")
@@ -41,7 +41,7 @@ function find_goc_files(ini_file; scenario_id="")
             elseif startswith(line, "INL")
                 files["inl"] = strip(split(line,"=")[2])
             else
-                warn(LOGGER, "unknown input given in ini file: $(line)")
+                warn(LOGGER, "unknown input given in ini file: $(line)") # Warning if none of the conditions satisfied
             end
         end
     end
@@ -52,15 +52,15 @@ function find_goc_files(ini_file; scenario_id="")
 
     #println(ini_dir)
     scenario_dirs = [file for file in readdir(ini_dir) if isdir(joinpath(ini_dir, file))]
-    scenario_dirs = sort(scenario_dirs)
+    scenario_dirs = sort(scenario_dirs) # Sort the scenario_dirs
     #println(scenario_dirs)
 
-    if length(scenario_id) == 0
-        scenario_id = scenario_dirs[1]
-        info(LOGGER, "no scenario specified, selected directory \"$(scenario_id)\"")
+    if length(scenario_id) == 0 # Checks the length of scenario_id if it is equal to zero
+        scenario_id = scenario_dirs[1] # Assigns the value of scenario_dirs[1] to scenario_id
+        info(LOGGER, "no scenario specified, selected directory \"$(scenario_id)\"") # If scenario_id is zero then no scenario is specified.
     else
-        if !(scenario_id in scenario_dirs)
-            error(LOGGER, "$(scenario_id) not found in $(scenario_dirs)")
+        if !(scenario_id in scenario_dirs) # Checks whether scenario_id is in scenario_dirs
+            error(LOGGER, "$(scenario_id) not found in $(scenario_dirs)") # Error message if scenario_id not found.
         end
     end
 
