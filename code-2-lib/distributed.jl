@@ -33,8 +33,8 @@ function add_local_procs()
     if Distributed.nprocs() >= 2
         return
     end
-    # Find the minimum from "75% of CPU threads or max_node_processes" and assign it to node_processes.
-    node_processes = min(trunc(Int, Sys.CPU_THREADS*0.75), max_node_processes)
+    
+    node_processes = min(trunc(Int, Sys.CPU_THREADS*0.75), max_node_processes) # Find the minimum from "75% of CPU threads or max_node_processes" and assign it to node_processes.
     @info("local processes: $(node_processes) of $(Sys.CPU_THREADS)") # Gives informatin about the current processes
 
     Distributed.addprocs(node_processes, topology=:master_worker) # Add the processes in the ditributed parallel computing
