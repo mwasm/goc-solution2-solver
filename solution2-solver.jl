@@ -40,7 +40,7 @@ function compute_solution2(con_file::String, inl_file::String, raw_file::String,
 
     cont_per_proc = cont_total/length(workers) # Number of contingencies per procs
 
-    for p in 1:length(workers) 
+    for p in 1:length(workers)
         cont_start = trunc(Int, ceil(1+(p-1)*cont_per_proc))
         cont_end = min(cont_total, trunc(Int,ceil(p*cont_per_proc)))
         pd = (
@@ -61,8 +61,8 @@ function compute_solution2(con_file::String, inl_file::String, raw_file::String,
         info(LOGGER, "worker task $(pd.pid): $(length(pd.cont_range)) / $(pd.cont_range)")
     end
 
-    solution2_files = pmap(solution2_solver, process_data, retry_delays = zeros(3)) # Parallel mapping 
-    sort!(solution2_files) # In-place sorting 
+    solution2_files = pmap(solution2_solver, process_data, retry_delays = zeros(3)) # Parallel mapping
+    sort!(solution2_files) # In-place sorting
     #println("pmap result: $(solution2_files)")
 
     time_contingencies = time() - time_contingencies_start # Calculates time difference
@@ -70,7 +70,7 @@ function compute_solution2(con_file::String, inl_file::String, raw_file::String,
     info(LOGGER, "time per contingency: $(time_contingencies/cont_total)")
 
     info(LOGGER, "combine $(length(solution2_files)) solution2 files")
-    combine_files(solution2_files, "solution2.txt"; output_dir=output_dir) # Adds solution2.txt to output directory
+    combine_files(solution2_files, "solution2.txt"; output_dir=output_dir) # Combining smaller solutions to make a big file and Adding solution2.txt to output directory
     remove_files(solution2_files)
 
 
@@ -246,4 +246,3 @@ end
 
     return solution_path
 end
-
