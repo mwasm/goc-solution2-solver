@@ -1,17 +1,17 @@
-@everywhere using PowerModels
+@everywhere using PowerModels # Uses Julia package for Steady-State Power Network Optimization.
 
 ##### Generic Helper Functions #####
 
 function remove_comment(string)
-    return split(string, "/")[1]
+    return split(string, "/")[1] # Split str into an array of substrings on occurrences of the delimiter (eg ,)
 end
 
 
 ##### GOC Initialization File Parser (.ini) #####
 
-function parse_goc_files(ini_file; scenario_id="")
-    files, scenario_id = find_goc_files(ini_file, scenario_id=scenario_id)
-    return parse_goc_files(files["con"], files["inl"], files["raw"], files["rop"], ini_file=ini_file, scenario_id=scenario_id)
+function parse_goc_files(ini_file; scenario_id="") # Function to parse the input files
+    files, scenario_id = find_goc_files(ini_file, scenario_id=scenario_id) # Calls the function named "find_goc_files"
+    return parse_goc_files(files["con"], files["inl"], files["raw"], files["rop"], ini_file=ini_file, scenario_id=scenario_id) # Returns the output of function "parse_goc_files"
 end
 
 function find_goc_files(ini_file; scenario_id="")
@@ -22,13 +22,13 @@ function find_goc_files(ini_file; scenario_id="")
         "inl" => "x"
     )
 
-    if !endswith(ini_file, ".ini")
-        warn(LOGGER, "given init file does not end with .ini, $(ini_file)")
+    if !endswith(ini_file, ".ini") # Checks for the format of file
+        warn(LOGGER, "given init file does not end with .ini, $(ini_file)") # Gives warning if the file format is not correct
     end
 
-    open(ini_file) do io
-        for line in readlines(io)
-            line = strip(line)
+    open(ini_file) do io # Opens the ini_file
+        for line in readlines(io) 
+            line = strip(line) # Strip fucntion is used to trim both leading & trailing white space.
             #println(line)
             if startswith(line, "[INPUTS]")
                 # do nothing
