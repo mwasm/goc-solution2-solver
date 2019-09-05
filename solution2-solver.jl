@@ -100,27 +100,28 @@ function compute_solution2(con_file::String, inl_file::String, raw_file::String,
 end
 
 
-@everywhere function solution2_solver(process_data)
+@everywhere function solution2_solver(process_data) # Function "solution2_solver" takes "process_data" as input argument
     #println(process_data)
-    time_data_start = time()
-    PowerModels.silence()
+    time_data_start = time() # To note the start time
+    PowerModels.silence() # Suppresses information and warning messages output by PowerModels
     goc_data = parse_goc_files(
         process_data.con_file, process_data.inl_file, process_data.raw_file,
-        process_data.rop_file, scenario_id=process_data.scenario_id)
-    network = build_pm_model(goc_data)
+        process_data.rop_file, scenario_id=process_data.scenario_id) # Parsing the input files
+    network = build_pm_model(goc_data) # Builds the model based on the input data (goc_data)
 
-    sol = read_solution1(network, output_dir=process_data.output_dir)
-    PowerModels.update_data!(network, sol)
-    correct_voltage_angles!(network)
+    sol = read_solution1(network, output_dir=process_data.output_dir) # Reads the base solution
+    PowerModels.update_data!(network, sol) # To update network with the values from sol
+    correct_voltage_angles!(network) # Correct the voltage angles. Assumes there is one reference bus and one connected component and adjusts voltage
+# angles to be centered around zero at the reference bus.
 
-    time_data = time() - time_data_start
+    time_data = time() - time_data_start # Calculate the time difference between current time and start time
 
     for (i,bus) in network["bus"]
         if haskey(bus, "evhi")
-            bus["vmax"] = bus["evhi"]
+            bus["vmax"] = bus["evhi"] 
         end
         if haskey(bus, "evlo")
-            bus["vmin"] = bus["evlo"]
+            bus["vmin"] = bus["evlo"] 
         end
     end
 
@@ -130,7 +131,8 @@ end
         end
     end
 
-    contingencies = contingency_order(network)[process_data.cont_range]
+    contingencies = contingency_order(network)[process_data.cont_range] # Build a static ordering of all contigencies
+
 
     for (i,branch) in network["branch"]
         g, b = PowerModels.calc_branch_y(branch)
@@ -141,7 +143,7 @@ end
         branch["ti"] = ti
     end
 
-    bus_gens = gens_by_bus(network)
+    bus_gens = gens_by_bus(network) # Function to check the bus status
 
     network["delta"] = 0
     for (i,bus) in network["bus"]
@@ -156,19 +158,21 @@ end
         gen["pg_base"] = gen["pg"]
         gen["pg_start"] = gen["pg"]
         gen["qg_start"] = gen["qg"]
-        gen["pg_fixed"] = false
-        gen["qg_fixed"] = false
+        gen["pg_fixed"] = false # To accomodate the contingencies, generator active power is not fixed.
+        gen["qg_fixed"] = false # To accomodate the contingencies, generator reactive power is not fixed.
     end
 
     #nlp_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, mu_init=1e-6, hessian_approximation="limited-memory", print_level=0)
-    nlp_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, print_level=0)
+    nlp_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, print_level=0) # Uses JuMP built-in optimizer
     #nlp_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6)
     #nlp_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, hessian_approximation="limited-memory")
 
 
-    pad_size = trunc(Int, ceil(log(10,process_data.processes)))
-    padded_pid = lpad(string(process_data.pid), pad_size, "0")
-    solution_filename = "solution2-$(padded_pid).txt"
+    pad_size = trunc(Int, ceil(log(10,process_data.processes))) # Finding the padding size
+    padded_pid = lpad(string(process_data.pid), pad_size, "0") # (lpad - left pad) lpad(string, n, "p") Make a string at least n columns wide when printed, by padding on the left with copies of p.
+
+
+    solution_filename = "solution2-$(padded_pid).txt" # Assigning the name to the solutin file
 
     if length(process_data.output_dir) > 0
         solution_path = joinpath(process_data.output_dir, solution_filename)
