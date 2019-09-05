@@ -198,53 +198,53 @@ end
 
             cont_gen = network_tmp["gen"]["$(cont.idx)"]
             cont_gen["contingency"] = true
-            cont_gen["gen_status"] = 0
+            cont_gen["gen_status"] = 0 # gen_status during contingency
             pg_lost = cont_gen["pg"]
 
-            time_start = time()
-            result = run_fixpoint_pf_v2_2!(network_tmp, pg_lost, ACRPowerModel, nlp_solver, iteration_limit=5)
-            debug(LOGGER, "second-stage contingency solve time: $(time() - time_start)")
+            time_start = time() # To note the start time
+            result = run_fixpoint_pf_v2_2!(network_tmp, pg_lost, ACRPowerModel, nlp_solver, iteration_limit=5) # Core algorithm that computes starting guess for delta and runs initial AC-PF
+            debug(LOGGER, "second-stage contingency solve time: $(time() - time_start)") # Finds the time spent for 2nd contingency solution
 
-            result["solution"]["label"] = cont.label
-            result["solution"]["feasible"] = (result["termination_status"] == LOCALLY_SOLVED)
-            result["solution"]["cont_type"] = "gen"
-            result["solution"]["cont_comp_id"] = cont.idx
+            result["solution"]["label"] = cont.label # Mentions the contingency label
+            result["solution"]["feasible"] = (result["termination_status"] == LOCALLY_SOLVED) # If status is true then solutin is feasible
+            result["solution"]["cont_type"] = "gen" #  Mention the contingency type
+            result["solution"]["cont_comp_id"] = cont.idx # Mentions the contingency index
 
-            result["solution"]["gen"]["$(cont.idx)"]["pg"] = 0.0
-            result["solution"]["gen"]["$(cont.idx)"]["qg"] = 0.0
+            result["solution"]["gen"]["$(cont.idx)"]["pg"] = 0.0 # During contingency, generator active power is zero
+            result["solution"]["gen"]["$(cont.idx)"]["qg"] = 0.0 # During contingency, generator reactive power is zero
 
-            correct_contingency_solution!(network, result["solution"])
-            open(solution_path, "a") do sol_file
-                sol2 = write_solution2_contingency(sol_file, network, result["solution"])
+            correct_contingency_solution!(network, result["solution"]) #  Used for post-processing. Various fallbacks if any step fails
+            open(solution_path, "a") do sol_file # Opens the sol_file
+                sol2 = write_solution2_contingency(sol_file, network, result["solution"]) # Writes the contingency solutin 2
             end
 
             network_tmp["gen"]["$(cont.idx)"]["gen_status"] = 1
-        elseif cont.type == "branch"
-            info(LOGGER, "working on: $(cont.label)")
-            time_start = time()
-            network_tmp = deepcopy(network)
-            debug(LOGGER, "contingency copy time: $(time() - time_start)")
+        elseif cont.type == "branch" # Checks if there is contingency of branch
+            info(LOGGER, "working on: $(cont.label)")  # Gives the current status of what is going on
+            time_start = time() # To note the start time
+            network_tmp = deepcopy(network)  # Copies all fields from "network"
+            debug(LOGGER, "contingency copy time: $(time() - time_start)") # How much time for contingency copy
             network_tmp["cont_label"] = cont.label
-            network_tmp["branch"]["$(cont.idx)"]["br_status"] = 0
+            network_tmp["branch"]["$(cont.idx)"]["br_status"] = 0 # branch status during contingency
 
 
-            time_start = time()
-            result = run_fixpoint_pf_v2_2!(network_tmp, 0.0, ACRPowerModel, nlp_solver, iteration_limit=5)
-            debug(LOGGER, "second-stage contingency solve time: $(time() - time_start)")
+            time_start = time()  # To note the start time
+            result = run_fixpoint_pf_v2_2!(network_tmp, 0.0, ACRPowerModel, nlp_solver, iteration_limit=5) # Core algorithm that computes starting guess for delta and runs initial AC-PF
+            debug(LOGGER, "second-stage contingency solve time: $(time() - time_start)") # Finds the time spent for 2nd contingency solution
 
-            result["solution"]["label"] = cont.label
-            result["solution"]["feasible"] = (result["termination_status"] == LOCALLY_SOLVED)
-            result["solution"]["cont_type"] = "branch"
-            result["solution"]["cont_comp_id"] = cont.idx
+            result["solution"]["label"] = cont.label # Mentions the contingency label
+            result["solution"]["feasible"] = (result["termination_status"] == LOCALLY_SOLVED) # If status is true then solutin is feasible
+            result["solution"]["cont_type"] = "branch" # Mention the contingency type
+            result["solution"]["cont_comp_id"] = cont.idx # Mentions the contingency index
 
-            correct_contingency_solution!(network, result["solution"])
-            open(solution_path, "a") do sol_file
-                sol2 = write_solution2_contingency(sol_file, network, result["solution"])
+            correct_contingency_solution!(network, result["solution"]) # Used for post-processing. Various fallbacks if any step fails
+            open(solution_path, "a") do sol_file # Opens the sol_file
+                sol2 = write_solution2_contingency(sol_file, network, result["solution"]) # Writes the contingency solutin 2
             end
 
-            network_tmp["branch"]["$(cont.idx)"]["br_status"] = 1
+            network_tmp["branch"]["$(cont.idx)"]["br_status"] = 1 
         else
-            @assert("contingency type $(cont.type) not known")
+            @assert("contingency type $(cont.type) not known") #  If contingency other than generator or branch then it is unknown
         end
     end
 
