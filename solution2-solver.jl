@@ -174,26 +174,26 @@ end
 
     solution_filename = "solution2-$(padded_pid).txt" # Assigning the name to the solutin file
 
-    if length(process_data.output_dir) > 0
-        solution_path = joinpath(process_data.output_dir, solution_filename)
+    if length(process_data.output_dir) > 0 # Checks the length of output_dir in process_data dic.
+        solution_path = joinpath(process_data.output_dir, solution_filename) # If there is content in output_dir then joins path of solutin_filename & output_dir
     else
         solution_path = solution_filename
     end
-    if isfile(solution_path)
+    if isfile(solution_path) # Checks the existence of solution_path
         warn(LOGGER, "removing existing solution2 file $(solution_path)")
         rm(solution_path)
     end
-    open(solution_path, "w") do sol_file
-        # creates an empty file in the case of workers without contingencies
+    open(solution_path, "w") do sol_file # creates an empty file in the case of workers without contingencies
+        
     end
 
     #network_tmp = deepcopy(network)
     for cont in contingencies
-        if cont.type == "gen"
-            info(LOGGER, "working on: $(cont.label)")
-            time_start = time()
-            network_tmp = deepcopy(network)
-            debug(LOGGER, "contingency copy time: $(time() - time_start)")
+        if cont.type == "gen" # Checks if there is contingency of generator
+            info(LOGGER, "working on: $(cont.label)") # Gives the current status of what is going on
+            time_start = time() # To note the start time
+            network_tmp = deepcopy(network) # Copies all fields from "network"
+            debug(LOGGER, "contingency copy time: $(time() - time_start)") # How much time for contingency copy
             network_tmp["cont_label"] = cont.label
 
             cont_gen = network_tmp["gen"]["$(cont.idx)"]
