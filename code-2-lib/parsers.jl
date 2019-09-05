@@ -33,7 +33,7 @@ function find_goc_files(ini_file; scenario_id="")
             if startswith(line, "[INPUTS]")
                 # do nothing
             elseif startswith(line, "ROP")
-                files["rop"] = strip(split(line,"=")[2])
+                files["rop"] = strip(split(line,"=")[2]) # Split returns a list of the words in the string, using sep as the delimiter string
             elseif startswith(line, "RAW")
                 files["raw"] = strip(split(line,"=")[2])
             elseif startswith(line, "CON")
@@ -41,7 +41,7 @@ function find_goc_files(ini_file; scenario_id="")
             elseif startswith(line, "INL")
                 files["inl"] = strip(split(line,"=")[2])
             else
-                warn(LOGGER, "unknown input given in ini file: $(line)")
+                warn(LOGGER, "unknown input given in ini file: $(line)") # Warning if none of the conditions satisfied
             end
         end
     end
