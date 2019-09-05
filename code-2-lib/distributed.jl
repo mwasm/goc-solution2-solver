@@ -1,7 +1,7 @@
-using Distributed
+using Distributed # Standard library for distributed memory parallel computing
 
 # this appears to be the point of diminishing returns
-max_node_processes = 12
+max_node_processes = 12 # Number of nodes in parallel computing
 
 "turns a slurm node list into a list of node names"
 function parse_node_names(slurm_node_list::String)
