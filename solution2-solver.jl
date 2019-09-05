@@ -62,16 +62,16 @@ function compute_solution2(con_file::String, inl_file::String, raw_file::String,
     end
 
     solution2_files = pmap(solution2_solver, process_data, retry_delays = zeros(3)) # Parallel mapping 
-    sort!(solution2_files) # In-place sorting 
+    sort!(solution2_files) # In-place sorting: over-write the existing file after sorting
     #println("pmap result: $(solution2_files)")
 
     time_contingencies = time() - time_contingencies_start # Calculates time difference
-    info(LOGGER, "contingency eval time: $(time_contingencies)")
-    info(LOGGER, "time per contingency: $(time_contingencies/cont_total)")
+    info(LOGGER, "contingency eval time: $(time_contingencies)") # Total evaluation time for contingencies
+    info(LOGGER, "time per contingency: $(time_contingencies/cont_total)") # How much evaluation time per contingency
 
     info(LOGGER, "combine $(length(solution2_files)) solution2 files")
-    combine_files(solution2_files, "solution2.txt"; output_dir=output_dir) # Adds solution2.txt to output directory
-    remove_files(solution2_files)
+    combine_files(solution2_files, "solution2.txt"; output_dir=output_dir) # Combines the solution files and adds solution2.txt to output directory
+    remove_files(solution2_files) # Removes the redundant files
 
 
     println("")
