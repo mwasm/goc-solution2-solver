@@ -446,11 +446,11 @@ end
                 # OPEN BRANCH FROM BUS *I TO BUS *J CIRCUIT *1CKT
 
                 @assert remaining_tokens >= 9
-                branch_tokens = tokens[token_idx:token_idx+9] # 
+                branch_tokens = tokens[token_idx:token_idx+9] # Informs how many tokens are there for a branch
                 #println(branch_tokens)
 
                 #if !all(branch_tokens[idx] == val for (idx, val) in branch_contigency_structure) && !all(branch_tokens[idx] == val for (idx, val) in branch_contigency_structure_alt)
-                if any(branch_tokens[idx] != val for (idx, val) in branch_contigency_structure)
+                if any(branch_tokens[idx] != val for (idx, val) in branch_contigency_structure) # If there is contradiction b/w branch contingency structure and branch tokens
                     error(LOGGER, "incorrect branch contingency structure: $(branch_tokens)")
                 end
 
@@ -471,7 +471,7 @@ end
                     "ckt" => ckt,
                 )
 
-                push!(con_lists, branch_contingency)
+                push!(con_lists, branch_contingency) # Inserts branch contingency in contingency list
 
                 token_idx += 9
             elseif token == "REMOVE"
