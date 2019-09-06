@@ -243,13 +243,13 @@ end
     "dc_const" => "Two Terminal DC Line Constraint Dependencies",
 ]
 
-@everywhere function parse_rop_file(file::String)
-    open(file) do io
-        return parse_rop_file(io)
+@everywhere function parse_rop_file(file::String) # Calls the function named parse_rop_file
+    open(file) do io # Opens the file for read/write operations
+        return parse_rop_file(io) 
     end
 end
 
-@everywhere function parse_rop_file(io::IO)
+@everywhere function parse_rop_file(io::IO) # Function including the details for parsing the rop file
     active_section_idx = 1
     active_section = rop_sections[active_section_idx]
 
@@ -257,18 +257,18 @@ end
     section_data[active_section.first] = []
 
     line_idx = 1
-    lines = readlines(io)
-    while line_idx < length(lines)
+    lines = readlines(io) # Read from io
+    while line_idx < length(lines) # Compare the length of lines and line index
         #line = remove_comment(lines[line_idx])
         line = lines[line_idx]
-        if startswith(strip(line), "0")
+        if startswith(strip(line), "0") # Checks if the stripped line starts with zero
             debug(LOGGER, "finished reading rop section $(active_section.second) with $(length(section_data[active_section.first])) items")
-            active_section_idx += 1
-            if active_section_idx > length(rop_sections)
-                debug(LOGGER, "finished reading known rop sections")
+            active_section_idx += 1 # active_section_idx = active_section_idx + 1
+            if active_section_idx > length(rop_sections) # If statement to make comparison b/w rop_sections & active_section_idx
+                debug(LOGGER, "finished reading known rop sections") 
                 break
             end
-            active_section = rop_sections[active_section_idx]
+            active_section = rop_sections[active_section_idx] 
             section_data[active_section.first] = []
             line_idx += 1
             continue
