@@ -117,33 +117,33 @@ function parse_goc_opf_files(ini_file; scenario_id="") # Function to parse the o
         "raw" => "x",
     )
 
-    if !endswith(ini_file, ".ini")
-        warn(LOGGER, "given init file does not end with .ini, $(ini_file)")
+    if !endswith(ini_file, ".ini") # Chcks the file format
+        warn(LOGGER, "given init file does not end with .ini, $(ini_file)") # Gives warning due to wrong file format
     end
 
-    open(ini_file) do io
-        for line in readlines(io)
-            line = strip(line)
+    open(ini_file) do io # Open the ini_file and allow read/write permissions
+        for line in readlines(io) # For loop to read lines
+            line = strip(line) # Removes leading and trailing characters from line
             #println(line)
-            if startswith(line, "[INPUTS]")
+            if startswith(line, "[INPUTS]") # Returns true if line starts with INPUTS.
                 # do nothing
-            elseif startswith(line, "ROP")
-                files["rop"] = strip(split(line,"=")[2])
-            elseif startswith(line, "RAW")
-                files["raw"] = strip(split(line,"=")[2])
+            elseif startswith(line, "ROP") # Returns true if line starts with ROP.
+                files["rop"] = strip(split(line,"=")[2]) # Split: splits the characters on a new line
+            elseif startswith(line, "RAW") # Returns true if line starts with RAW.
+                files["raw"] = strip(split(line,"=")[2]) # Split: splits the characters on a new line
             else
-                warn(LOGGER, "unknown input given in ini file: $(line)")
+                warn(LOGGER, "unknown input given in ini file: $(line)") # Warning if none of the above conditions satisfied
             end
         end
     end
 
     #println(files)
 
-    ini_dir = dirname(ini_file)
+    ini_dir = dirname(ini_file) # Assigns the directory name of ini_file to ini_dir
 
     #println(ini_dir)
-    scenario_dirs = [file for file in readdir(ini_dir) if isdir(joinpath(ini_dir, file))]
-    scenario_dirs = sort(scenario_dirs)
+    scenario_dirs = [file for file in readdir(ini_dir) if isdir(joinpath(ini_dir, file))] # Reads the ini_dir and if directory is present then joins the path with file
+    scenario_dirs = sort(scenario_dirs) # To sort the scenario_dirs
     #println(scenario_dirs)
 
     if length(scenario_id) == 0
