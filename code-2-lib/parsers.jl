@@ -66,11 +66,11 @@ function find_goc_files(ini_file; scenario_id="")
 
     for (id, path) in files
         if path == "."
-            files[id] = ini_dir
+            files[id] = ini_dir # Assigns ini_dir to files[id]
         elseif path == "x"
-            files[id] = joinpath(ini_dir, scenario_id)
+            files[id] = joinpath(ini_dir, scenario_id) # Returns an array of substrings, one for each directory or file in the path, including the root directory if present.
         else
-            error(LOGGER, "unknown file path directive $(path) for file $(id)")
+            error(LOGGER, "unknown file path directive $(path) for file $(id)") # Error if none of the above conditions fulfilled
         end
     end
 
