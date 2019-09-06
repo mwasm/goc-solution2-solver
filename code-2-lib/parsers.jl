@@ -146,22 +146,22 @@ function parse_goc_opf_files(ini_file; scenario_id="") # Function to parse the o
     scenario_dirs = sort(scenario_dirs) # To sort the scenario_dirs
     #println(scenario_dirs)
 
-    if length(scenario_id) == 0
-        scenario_id = scenario_dirs[1]
-        info(LOGGER, "no scenario specified, selected directory \"$(scenario_id)\"")
+    if length(scenario_id) == 0 # Checks the length of scenario_id if it is equal to zero
+        scenario_id = scenario_dirs[1] # Assigns the value of scenario_dirs[1] to scenario_id
+        info(LOGGER, "no scenario specified, selected directory \"$(scenario_id)\"") # If scenario_id is zero then no scenario is specified
     else
-        if !(scenario_id in scenario_dirs)
-            error(LOGGER, "$(scenario_id) not found in $(scenario_dirs)")
+        if !(scenario_id in scenario_dirs) # Checks whether scenario_id is in scenario_dirs
+            error(LOGGER, "$(scenario_id) not found in $(scenario_dirs)") # Error message if scenario_id not found.
         end
     end
 
     for (id, path) in files
         if path == "."
-            files[id] = ini_dir
+            files[id] = ini_dir  # Assigns ini_dir to files[id]
         elseif path == "x"
-            files[id] = joinpath(ini_dir, scenario_id)
+            files[id] = joinpath(ini_dir, scenario_id) # Join path components into a full path. 
         else
-            error(LOGGER, "unknown file path directive $(path) for file $(id)")
+            error(LOGGER, "unknown file path directive $(path) for file $(id)") # Error (unknown file path) if none of the above conditions fulfilled
         end
     end
 
