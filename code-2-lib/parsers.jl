@@ -83,7 +83,7 @@ function find_goc_files(ini_file; scenario_id="")
 end
 
 
-@everywhere function parse_goc_files(con_file, inl_file, raw_file, rop_file; ini_file="", scenario_id="none")
+@everywhere function parse_goc_files(con_file, inl_file, raw_file, rop_file; ini_file="", scenario_id="none") # Function that performs the parsing of goc files
     files = Dict(
         "rop" => rop_file,
         "raw" => raw_file,
@@ -91,27 +91,27 @@ end
         "inl" => inl_file
     )
 
-    info(LOGGER, "Parsing Files")
-    info(LOGGER, "  raw: $(files["raw"])")
-    info(LOGGER, "  rop: $(files["rop"])")
-    info(LOGGER, "  inl: $(files["inl"])")
-    info(LOGGER, "  con: $(files["con"])")
+    info(LOGGER, "Parsing Files") # To notify the current situation of the program
+    info(LOGGER, "  raw: $(files["raw"])") # raw: raw_file
+    info(LOGGER, "  rop: $(files["rop"])") # rop: rop_file
+    info(LOGGER, "  inl: $(files["inl"])") # inl: inl_file
+    info(LOGGER, "  con: $(files["con"])") # con: con_file
 
-    info(LOGGER, "skipping power models data warnings")
-    pm_logger_level = getlevel(getlogger(PowerModels))
+    info(LOGGER, "skipping power models data warnings") # Informs what things are skipped
+    pm_logger_level = getlevel(getlogger(PowerModels)) # "getlogger" returns the current root/global logger (to record events) 
     setlevel!(getlogger(PowerModels), "error")
-    network_model = PowerModels.parse_file(files["raw"], import_all=true)
+    network_model = PowerModels.parse_file(files["raw"], import_all=true) # Parse the raw file
     setlevel!(getlogger(PowerModels), pm_logger_level)
 
-    gen_cost = parse_rop_file(files["rop"])
-    response = parse_inl_file(files["inl"])
-    contingencies = parse_con_file(files["con"])
+    gen_cost = parse_rop_file(files["rop"]) # parsing the rop file
+    response = parse_inl_file(files["inl"]) # parsing the inl file
+    contingencies = parse_con_file(files["con"]) # parsing the con file
 
-    return (ini_file=ini_file, scenario=scenario_id, network=network_model, cost=gen_cost, response=response, contingencies=contingencies, files=files)
+    return (ini_file=ini_file, scenario=scenario_id, network=network_model, cost=gen_cost, response=response, contingencies=contingencies, files=files) # Returns these values
 end
 
 
-function parse_goc_opf_files(ini_file; scenario_id="")
+function parse_goc_opf_files(ini_file; scenario_id="") # Function to parse the opf files
     files = Dict(
         "rop" => "x",
         "raw" => "x",
