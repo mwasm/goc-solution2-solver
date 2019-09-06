@@ -18,7 +18,7 @@
     network = goc_data.network
 
     ##### General Helpers #####
-    gen_lookup = Dict(tuple(gen["source_id"][2], strip(gen["source_id"][3])) => gen for (i,gen) in network["gen"])
+    gen_lookup = Dict(tuple(gen["source_id"][2], strip(gen["source_id"][3])) => gen for (i,gen) in network["gen"]) # Dic
 
     branch_lookup = Dict()
     for (i,branch) in network["branch"]
@@ -26,10 +26,10 @@
             branch_id = tuple(branch["source_id"][2], branch["source_id"][3], strip(branch["source_id"][4]))
         else
             branch_id = tuple(branch["source_id"][2], branch["source_id"][3], strip(branch["source_id"][5]))
-            @assert branch["source_id"][4] == 0
+            @assert branch["source_id"][4] == 0 # Assert macro allows to optionally specify error message, instead of just printing the failed expression
             @assert branch["source_id"][6] == 0
         end
-        branch_lookup[branch_id] = branch
+        branch_lookup[branch_id] = branch 
     end
 
 
