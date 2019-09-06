@@ -36,17 +36,17 @@
 
     ##### Link Generator Cost Data #####
 
-    @assert network["per_unit"]
-    mva_base = network["baseMVA"]
+    @assert network["per_unit"] # Assert macro allows to optionally specify error message, instead of just printing the failed expression
+    mva_base = network["baseMVA"] # Assigns baseMVA from network as mva_base
 
-    dispatch_tbl_lookup = Dict()
-    for dispatch_tbl in goc_data.cost["disptbl"]
-        dispatch_tbl_lookup[dispatch_tbl["ctbl"]] = dispatch_tbl
+    dispatch_tbl_lookup = Dict() # Creates a dictionary named dispatch_tbl_lookup
+    for dispatch_tbl in goc_data.cost["disptbl"] 
+        dispatch_tbl_lookup[dispatch_tbl["ctbl"]] = dispatch_tbl # Assigns dispatch_tbl to dictionary named dispatch_tbl_lookup
     end
 
-    cost_tbl_lookup = Dict()
+    cost_tbl_lookup = Dict() # Creates a dictionary named cost_tbl_lookup
     for cost_tbl in goc_data.cost["ctbl"]
-        cost_tbl_lookup[cost_tbl["ltbl"]] = cost_tbl
+        cost_tbl_lookup[cost_tbl["ltbl"]] = cost_tbl # Assigns cost_tbl to dictionary named cost_tbl_lookup
     end
 
     gen_cost_models = Dict()
