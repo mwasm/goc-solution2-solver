@@ -13,7 +13,7 @@
 @everywhere import Statistics: mean
 
 
-@everywhere function build_pm_model(goc_data)
+@everywhere function build_pm_model(goc_data) # Function to build a model based on the input data
     scenario = goc_data.scenario
     network = goc_data.network
 
@@ -22,7 +22,7 @@
 
     branch_lookup = Dict()
     for (i,branch) in network["branch"]
-        if !branch["transformer"]
+        if !branch["transformer"] # Checks if the branch is not the transformer
             branch_id = tuple(branch["source_id"][2], branch["source_id"][3], strip(branch["source_id"][4]))
         else
             branch_id = tuple(branch["source_id"][2], branch["source_id"][3], strip(branch["source_id"][5]))
