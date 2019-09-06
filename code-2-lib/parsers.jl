@@ -473,7 +473,7 @@ end
 
                 push!(con_lists, branch_contingency) # Inserts branch contingency in contingency list
 
-                token_idx += 9
+                token_idx += 9 # token_idx = token_idx + 9
             elseif token == "REMOVE"
                 # REMOVE UNIT *ID FROM BUS *I
 
@@ -481,7 +481,7 @@ end
                 generator_tokens = tokens[token_idx:token_idx+5]
                 #println(generator_tokens)
 
-                if any(generator_tokens[idx] != val for (idx, val) in generator_contigency_structure)
+                if any(generator_tokens[idx] != val for (idx, val) in generator_contigency_structure) # checks if there is contradiction b/w  generator contingency structure and generator tokens
                     error(LOGGER, "incorrect generator contingency structure: $(generator_tokens)")
                 end
 
@@ -498,14 +498,14 @@ end
                     "i" => bus_i,
                 )
 
-                push!(con_lists, generator_contingency)
+                push!(con_lists, generator_contingency) # Inserts generator contingencies into the contingency list
 
-                token_idx += 5
+                token_idx += 5 # token_idx = token_idx + 5
             elseif token == "END"
-                warn(LOGGER, "no action provided for contingency $(contingency_name)")
+                warn(LOGGER, "no action provided for contingency $(contingency_name)") # If no action is mentioned in the file for a contingency
                 token_idx -= 1
             else
-                warn(LOGGER, "unrecognized token $(token)")
+                warn(LOGGER, "unrecognized token $(token)") # For unexpected tokens
             end
 
             token_idx += 1
@@ -525,17 +525,17 @@ end
 
 
 
-@everywhere function parse_solution1_file(file::String)
-    open(file) do io
+@everywhere function parse_solution1_file(file::String) # Calls function named parse_solution1_file
+    open(file) do io # Opens the file for read/write operations
         return parse_solution1_file(io)
     end
 end
 
-@everywhere function parse_solution1_file(io::IO)
+@everywhere function parse_solution1_file(io::IO) # Function containing details how to parse the solutin1 file
     bus_data_list = []
     gen_data_list = []
 
-    lines = readlines(io)
+    lines = readlines(io) # Reads the input
 
     # skip bus list header section
     idx = 1
@@ -562,7 +562,7 @@ end
                     va = parse(Float64, parts[3]),
                     bcs = parse(Float64, parts[4])
                 )
-                push!(bus_data_list, bus_data)
+                push!(bus_data_list, bus_data) # Inserts bus data at the end of bus_data_list
             elseif separator_count == 2
                 parts = split(line, ",")
                 @assert length(parts) >= 4
@@ -572,7 +572,7 @@ end
                     pg = parse(Float64, parts[3]),
                     qg = parse(Float64, parts[4])
                 )
-                push!(gen_data_list, gen_data)
+                push!(gen_data_list, gen_data) # Inserts the gen_data at the end of gen_data_list
             else
                 warn(LOGGER, "skipping line in solution1 file ($(idx)): $(line)")
             end
@@ -580,7 +580,7 @@ end
         idx += 1
     end
 
-    return (bus=bus_data_list, gen=gen_data_list)
+    return (bus=bus_data_list, gen=gen_data_list) # Returns bus and gen data
 end
 
 
