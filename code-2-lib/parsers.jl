@@ -339,8 +339,8 @@ end
     points = []
 
     for point_line in point_lines
-        point_line_parts = split(point_line, ",")
-        @assert length(point_line_parts) >= 2
+        point_line_parts = split(point_line, ",") # Splits the point_line based on commas
+        @assert length(point_line_parts) >= 2 # Assert macro allows to optionally specify our own error message, instead of just printing the failed expression
         x = parse(Float64, point_line_parts[1])
         y = parse(Float64, point_line_parts[2])
 
@@ -395,6 +395,7 @@ end
 =#
 
 # REMOVE UNIT *ID FROM BUS *I
+# Generator contigency details
 @everywhere generator_contigency_structure = [
     1 => "REMOVE",
     2 => "UNIT",
@@ -405,47 +406,47 @@ end
 ]
 
 
-@everywhere function parse_con_file(file::String)
-    open(file) do io
-        return parse_con_file(io)
+@everywhere function parse_con_file(file::String) # Calls the parse_con_file
+    open(file) do io # Open the file for read/write purposes
+        return parse_con_file(io) # Returns the parsed file
     end
 end
 
-@everywhere function parse_con_file(io::IO)
+@everywhere function parse_con_file(io::IO) # Function that describe details regarding how to parse the contingency file
     con_lists = []
 
     tokens = []
 
-    for line in readlines(io)
+    for line in readlines(io) # Reads from the io file
         #line_tokens = split(strip(remove_comment(line)))
-        line_tokens = split(strip(line))
+        line_tokens = split(strip(line)) 
         #println(line_tokens)
-        append!(tokens, line_tokens)
+        append!(tokens, line_tokens) # Inserts line_tokens at the end of tokens
     end
 
     #println(tokens)
 
     token_idx = 1
-    while token_idx <= length(tokens)
-        token = tokens[token_idx]
+    while token_idx <= length(tokens) # Infinite loop until token_idx > length(tokens)
+        token = tokens[token_idx] # Assigns tokens[token_idx] to token
         if token == "END"
-            debug(LOGGER, "end of contingency file found")
+            debug(LOGGER, "end of contingency file found") # Notify the end of contingency file
             break
-        elseif token == "CONTINGENCY"
+        elseif token == "CONTINGENCY" # Checks if token is equal to CONTINGENCY
             # start reading contingencies
 
-            contingency_name = tokens[token_idx+1]
-            debug(LOGGER, "reading contingency $(contingency_name)")
+            contingency_name = tokens[token_idx+1] # Increments the token index to read the next contingency
+            debug(LOGGER, "reading contingency $(contingency_name)") # Notify the contingency name
 
-            token_idx += 2
+            token_idx += 2 # token_idx = token_idx + 2
             token = tokens[token_idx]
-            remaining_tokens = length(tokens) - token_idx
+            remaining_tokens = length(tokens) - token_idx # Finds the remaining tokens
 
             if token == "OPEN" # branch contingency case
                 # OPEN BRANCH FROM BUS *I TO BUS *J CIRCUIT *1CKT
 
                 @assert remaining_tokens >= 9
-                branch_tokens = tokens[token_idx:token_idx+9]
+                branch_tokens = tokens[token_idx:token_idx+9] # 
                 #println(branch_tokens)
 
                 #if !all(branch_tokens[idx] == val for (idx, val) in branch_contigency_structure) && !all(branch_tokens[idx] == val for (idx, val) in branch_contigency_structure_alt)
