@@ -274,32 +274,32 @@ end
             continue
         end
 
-        if active_section.first == "gen"
-            push!(section_data[active_section.first], _parse_rop_gen(line))
-        elseif active_section.first == "disptbl"
-            push!(section_data[active_section.first], _parse_rop_pg(line))
-        elseif active_section.first == "ctbl"
-            pwl_line_parts = split(line, ",")
+        if active_section.first == "gen" # Checks if the first entity in active_section is gen.
+            push!(section_data[active_section.first], _parse_rop_gen(line)) # Inserts _parse_rop_gen(line) into the section_data file
+        elseif active_section.first == "disptbl" # Checks if the first entity in active_section is disptbl.
+            push!(section_data[active_section.first], _parse_rop_pg(line)) # Inserts _parse_rop_gen(line) into the section_data file
+        elseif active_section.first == "ctbl" # Checks if the first entity in active_section is ctbl.
+            pwl_line_parts = split(line, ",") # Splits the line based on commas
             @assert length(pwl_line_parts) >= 3
 
             num_pwl_lines = parse(Int, pwl_line_parts[3])
-            @assert num_pwl_lines > 0
+            @assert num_pwl_lines > 0 # Assert macro allows the users to optionally specify their own error message, instead of just printing the failed expression
 
             pwl_point_lines = lines[line_idx+1:line_idx+num_pwl_lines]
             #pwl_point_lines = remove_comment.(pwl_point_lines)
-            push!(section_data[active_section.first], _parse_rop_pwl(pwl_line_parts, pwl_point_lines))
-            line_idx += num_pwl_lines
+            push!(section_data[active_section.first], _parse_rop_pwl(pwl_line_parts, pwl_point_lines)) # Inserts _parse_rop_pwl into the section_data file
+            line_idx += num_pwl_lines # line_idx = line_idx + num_pwl_lines
         else
-            info(LOGGER, "skipping data line: $(line)")
+            info(LOGGER, "skipping data line: $(line)") # If none of the above statements satisfied the this info appears.
         end
-        line_idx += 1
+        line_idx += 1 # line_idx = line_idx + 1
     end
-    return section_data
+    return section_data # Returns the content of section_data
 end
 
-@everywhere function _parse_rop_gen(line)
-    line_parts = split(line, ",")
-    @assert length(line_parts) >= 4
+@everywhere function _parse_rop_gen(line) # Calls the function named _parse_rop_gen
+    line_parts = split(line, ",") # Splits the line based on comma
+    @assert length(line_parts) >= 4 # Assert macro allows the users to optionally specify their own error message, instead of just printing the failed expression
 
     data = Dict(
         "bus"     => parse(Int, line_parts[1]),
@@ -308,7 +308,7 @@ end
         "disptbl" => parse(Int, line_parts[4]),
     )
 
-    @assert data["disptbl"] >= 0
+    @assert data["disptbl"] >= 0 # Assert macro allows the users to optionally specify their own error message, instead of just printing the failed expression
 
     return data
 end
