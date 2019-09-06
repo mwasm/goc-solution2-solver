@@ -172,32 +172,32 @@ function parse_goc_opf_files(ini_file; scenario_id="") # Function to parse the o
     info(LOGGER, "  raw: $(files["raw"])")
     info(LOGGER, "  rop: $(files["rop"])")
 
-    network_model = PowerModels.parse_file(files["raw"], import_all=true)
-    gen_cost = parse_rop_file(files["rop"])
+    network_model = PowerModels.parse_file(files["raw"], import_all=true) # Parsing the raw file to know details about network model
+    gen_cost = parse_rop_file(files["rop"]) # Parsing the rop file to get gen_cost
 
-    return (ini_file=ini_file, scenario=scenario_id, network=network_model, cost=gen_cost, files=files)
+    return (ini_file=ini_file, scenario=scenario_id, network=network_model, cost=gen_cost, files=files) # Returns the specified values
 end
 
 
 ##### Unit Inertia and Governor Response Data File Parser (.inl) #####
 
-@everywhere function parse_inl_file(file::String)
-    open(file) do io
-        return parse_inl_file(io)
+@everywhere function parse_inl_file(file::String) # Function to parse the .inl file
+    open(file) do io # Open the file for read/write access
+        return parse_inl_file(io) # Return the parsed file
     end
 end
 
-@everywhere function parse_inl_file(io::IO)
+@everywhere function parse_inl_file(io::IO) # Function including the details for parsing the inl file
     inl_list = []
-    for line in readlines(io)
+    for line in readlines(io) 
         #line = remove_comment(line)
 
-        if startswith(strip(line), "0")
+        if startswith(strip(line), "0") # Checks if the line starts with zero  
             debug(LOGGER, "inl file sentinel found")
             break
         end
-        line_parts = split(line, ",")
-        @assert length(line_parts) >= 7
+        line_parts = split(line, ",") # Split the line based on commas
+        @assert length(line_parts) >= 7 # Assert macro allows the users to optionally specify their own error message, instead of just printing the failed expression
 
         inl_data = Dict(
             "i"    => parse(Int, line_parts[1]),
@@ -209,12 +209,12 @@ end
             "d"    => strip(line_parts[7])
         )
 
-        @assert inl_data["r"] >= 0.0
+        @assert inl_data["r"] >= 0.0 # Assert macro allows the users to optionally specify their own error message, instead of just printing the failed expression
 
         #println(inl_data)
-        push!(inl_list, inl_data)
+        push!(inl_list, inl_data) # Inserts inl_data at the end of inl_list
     end
-    return inl_list
+    return inl_list 
 end
 
 
