@@ -657,14 +657,14 @@ end
 
 ""
 
-@everywhere function run_fixed_pf_nbf_rect2(file, model_constructor, solver; kwargs...)
+@everywhere function run_fixed_pf_nbf_rect2(file, model_constructor, solver; kwargs...) # Calls function to check out-of-bound values
     return run_model(file, model_constructor, solver, post_fixed_pf_nbf_rect2; solution_builder = solution_second_stage!, kwargs...)
 end
 
 
 ""
 
-@everywhere function post_fixed_pf_nbf_rect2(pm::GenericPowerModel)
+@everywhere function post_fixed_pf_nbf_rect2(pm::GenericPowerModel) # Function to look for out-of-bound calues after initial pf.
     start_time = time()
     PowerModels.variable_voltage(pm, bounded=false)
     PowerModels.variable_active_generation(pm, bounded=false)
@@ -947,7 +947,7 @@ end
 
 "checks feasibility criteria of contingencies, corrects when possible"
 
-@everywhere function correct_contingency_solution!(network, cont_sol; bus_gens = gens_by_bus(network))
+@everywhere function correct_contingency_solution!(network, cont_sol; bus_gens = gens_by_bus(network)) # Function for post-processing
     label = cont_sol["label"]
     vm_changes = [0.0]
     for (i,bus) in cont_sol["bus"]
@@ -1147,7 +1147,7 @@ end
 end
 
 
-@everywhere function write_solution2_contingency(io::IO, pm_network, contingency_solution)
+@everywhere function write_solution2_contingency(io::IO, pm_network, contingency_solution) # Writes solution2 for contingency
     base_mva = pm_network["baseMVA"]
 
     bus_switched_shunt_b = Dict(i => 0.0 for (i,bus) in pm_network["bus"])
