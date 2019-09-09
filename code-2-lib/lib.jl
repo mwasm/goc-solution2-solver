@@ -247,22 +247,22 @@ end
 
 
 
-@everywhere function read_solution1(network; output_dir="", state_file="solution1.txt") # Calls the function to read solution 1 of base case
+@everywhere function read_solution1(network; output_dir="", state_file="solution1.txt") # Function to read solution 1 of base case
     if length(output_dir) > 0
         solution1_path = joinpath(output_dir, state_file)
     else
         solution1_path = state_file
     end
 
-    return build_pm_solution(network, solution1_path)
+    return build_pm_solution(network, solution1_path) # Calls the functin named build_pm_solution to initiate the parsing of solution1.txt
 end
 
-@everywhere function build_pm_solution(network, goc_sol_file::String)
+@everywhere function build_pm_solution(network, goc_sol_file::String) # build_pm_solution function
     info(LOGGER, "loading solution file: $(goc_sol_file)")
     goc_sol = parse_solution1_file(goc_sol_file)
 
     info(LOGGER, "converting GOC solution to PowerModels solution")
-    pm_sol = build_pm_solution(network, goc_sol)
+    pm_sol = build_pm_solution(network, goc_sol) 
 
     return pm_sol
 end
@@ -319,7 +319,7 @@ end
     return solution
 end
 
-@everywhere function gens_by_bus(network)
+@everywhere function gens_by_bus(network) # Function to see which are generation buses
     bus_gens = Dict(i => Any[] for (i,bus) in network["bus"])
     for (i,gen) in network["gen"]
         if gen["gen_status"] != 0
