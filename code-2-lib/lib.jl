@@ -55,18 +55,18 @@
         dispatch_tbl = dispatch_tbl_lookup[gen_dispatch["disptbl"]] # Calls the function named dispatch_tbl_lookup for gen dispatch table
         cost_tbl = cost_tbl_lookup[dispatch_tbl["ctbl"]] # Calls the function named cost_tbl_lookup for dispatch table cost
 
-        gen_cost_models[gen_id] = cost_tbl
+        gen_cost_models[gen_id] = cost_tbl # Assigns the cost_tbl to the specific gen cost model id
     end
 
-    if length(gen_cost_models) != length(network["gen"])
-        error(LOGGER, "cost model data missing, network has $(length(network["gen"])) generators, the cost model has $(length(gen_cost_models)) generators")
+    if length(gen_cost_models) != length(network["gen"]) # Checks if the length of both generator network and generator cost model is same
+        error(LOGGER, "cost model data missing, network has $(length(network["gen"])) generators, the cost model has $(length(gen_cost_models)) generators") # Mismatch error
     end
 
     for (gen_id, cost_model) in gen_cost_models
-        pm_gen = gen_lookup[gen_id]
-        pm_gen["model"] = 1
-        pm_gen["model_lable"] = cost_model["label"]
-        pm_gen["ncost"] = length(cost_model["points"])
+        pm_gen = gen_lookup[gen_id] # Calls gen_lookup for gen_id & stores the result in pm_gen
+        pm_gen["model"] = 1 
+        pm_gen["model_lable"] = cost_model["label"] # Assigns label for cost model to model lable for pm_gen
+        pm_gen["ncost"] = length(cost_model["points"]) # Finds the length of points in cost_model
 
         #println(cost_model["points"])
         point_list = Float64[]
