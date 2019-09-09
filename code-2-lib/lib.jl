@@ -331,7 +331,7 @@ end
 
 
 
-@everywhere function run_fixpoint_pf_v2_2!(network, pg_lost, model_constructor, solver; iteration_limit=typemax(Int64))
+@everywhere function run_fixpoint_pf_v2_2!(network, pg_lost, model_constructor, solver; iteration_limit=typemax(Int64)) # Core algorithm
     time_start = time()
 
     delta = apply_pg_response!(network, pg_lost)
@@ -352,9 +352,9 @@ end
 
     #network["delta_start"] = network["delta"]
     for (i,gen) in network["gen"]
-        gen["qg_fixed"] = false
+        gen["qg_fixed"] = false # Set to false to allow variations in qg_fixed 
         gen["pg_start"] = gen["pg"]
-        if isapprox(gen["qmin"],gen["qmax"])
+        if isapprox(gen["qmin"],gen["qmax"]) 
             gen["qg_fixed"] = true
             gen["qg"] = gen["qmin"]
         end
@@ -382,7 +382,7 @@ end
         PowerModels.update_data!(network, result["solution"])
         final_result = result
     else
-        warn(LOGGER, "contingency pf solver FAILED with status $(result["termination_status"]) on iteration 0")
+        warn(LOGGER, "contingency pf solver FAILED with status $(result["termination_status"]) on iteration 0") # Warning if solver is failed to resolve the contingency
         return final_result
     end
 
@@ -405,7 +405,7 @@ end
         vm_switched = false
 
         for (i,gen) in network["gen"]
-            pg = gen["pg_base"] + network["delta"]*gen["alpha"]
+            pg = gen["pg_base"] + network["delta"]*gen["alpha"] # To find the real output power of a responding generator
 
             if gen["pg_fixed"]
                 if !isapprox(gen["pmax"], gen["pmin"]) && pg < gen["pmax"] && pg > gen["pmin"]
