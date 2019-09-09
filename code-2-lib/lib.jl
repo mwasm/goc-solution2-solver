@@ -185,7 +185,7 @@ function build_pm_opf_model(goc_data)
 
     branch_lookup = Dict()
     for (i,branch) in network["branch"]
-        if !branch["transformer"]
+        if !branch["transformer"] # Checks if branch is other than transformer
             branch_id = tuple(branch["source_id"][2], branch["source_id"][3], strip(branch["source_id"][4]))
         else
             branch_id = tuple(branch["source_id"][2], branch["source_id"][3], strip(branch["source_id"][5]))
@@ -202,7 +202,7 @@ function build_pm_opf_model(goc_data)
     @assert network["per_unit"]
     mva_base = network["baseMVA"]
 
-    dispatch_tbl_lookup = Dict()
+    dispatch_tbl_lookup = Dict() # Creates a dictionary for dispatch_tbl_lookup
     for dispatch_tbl in goc_data.cost["disptbl"]
         dispatch_tbl_lookup[dispatch_tbl["ctbl"]] = dispatch_tbl
     end
@@ -221,8 +221,8 @@ function build_pm_opf_model(goc_data)
         gen_cost_models[gen_id] = cost_tbl
     end
 
-    if length(gen_cost_models) != length(network["gen"])
-        error(LOGGER, "cost model data missing, network has $(length(network["gen"])) generators, the cost model has $(length(gen_cost_models)) generators")
+    if length(gen_cost_models) != length(network["gen"]) # Checks if the length of generator networks is not equal to generator cost model
+        error(LOGGER, "cost model data missing, network has $(length(network["gen"])) generators, the cost model has $(length(gen_cost_models)) generators") # Mentions there is error due to mismatch
     end
 
     for (gen_id, cost_model) in gen_cost_models
@@ -247,7 +247,7 @@ end
 
 
 
-@everywhere function read_solution1(network; output_dir="", state_file="solution1.txt")
+@everywhere function read_solution1(network; output_dir="", state_file="solution1.txt") # Calls the function to read solution 1 of base case
     if length(output_dir) > 0
         solution1_path = joinpath(output_dir, state_file)
     else
