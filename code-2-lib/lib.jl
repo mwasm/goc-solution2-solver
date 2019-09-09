@@ -504,7 +504,7 @@ end
         end
 
 
-        if pg_switched || qg_switched || vm_switched
+        if pg_switched || qg_switched || vm_switched # || means OR
             debug(LOGGER, "bus or gen swtiched: $iteration")
             time_start = time()
             result = run_fixed_pf_nbf_rect2(network, model_constructor, solver)
@@ -535,7 +535,7 @@ end
 
 
 
-@everywhere function apply_pg_response!(network, pg_delta)
+@everywhere function apply_pg_response!(network, pg_delta) # Function to compute good starting guess for delta
     for (i,gen) in network["gen"]
         gen["pg_fixed"] = false
     end
