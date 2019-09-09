@@ -49,11 +49,11 @@
         cost_tbl_lookup[cost_tbl["ltbl"]] = cost_tbl # Assigns cost_tbl to dictionary named cost_tbl_lookup
     end
 
-    gen_cost_models = Dict()
-    for gen_dispatch in goc_data.cost["gen"]
-        gen_id = (gen_dispatch["bus"], strip(gen_dispatch["genid"]))
-        dispatch_tbl = dispatch_tbl_lookup[gen_dispatch["disptbl"]]
-        cost_tbl = cost_tbl_lookup[dispatch_tbl["ctbl"]]
+    gen_cost_models = Dict() # Defines an empty dictionary for generation cost models
+    for gen_dispatch in goc_data.cost["gen"] # Looks for the cost of gen in goc_data
+        gen_id = (gen_dispatch["bus"], strip(gen_dispatch["genid"])) # Removes the leading and trailing characters from genid
+        dispatch_tbl = dispatch_tbl_lookup[gen_dispatch["disptbl"]] # Calls the function named dispatch_tbl_lookup for gen dispatch table
+        cost_tbl = cost_tbl_lookup[dispatch_tbl["ctbl"]] # Calls the function named cost_tbl_lookup for dispatch table cost
 
         gen_cost_models[gen_id] = cost_tbl
     end
