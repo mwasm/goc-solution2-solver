@@ -71,22 +71,22 @@
         #println(cost_model["points"])
         point_list = Float64[]
         for point in cost_model["points"]
-            push!(point_list, point.x/mva_base)
-            push!(point_list, point.y)
+            push!(point_list, point.x/mva_base) 
+            push!(point_list, point.y) # Inserts point.y at the end of point_list
         end
-        pm_gen["cost"] = point_list
+        pm_gen["cost"] = point_list # Assigns point_list to cost in pm_gen
     end
 
 
 
     ##### Link Generator Participation Data #####
 
-    if length(goc_data.response) != length(network["gen"])
-        error(LOGGER, "generator response model data missing, network has $(length(network["gen"])) generators, the response model has $(length(goc_data.response)) generators")
+    if length(goc_data.response) != length(network["gen"]) # Checks if all the generators are active or not
+        error(LOGGER, "generator response model data missing, network has $(length(network["gen"])) generators, the response model has $(length(goc_data.response)) generators") # Error to mention the out of service generators
     end
 
-    for gen_response in goc_data.response
-        gen_id = (gen_response["i"], strip(gen_response["id"]))
+    for gen_response in goc_data.response # Looks for response in goc_data
+        gen_id = (gen_response["i"], strip(gen_response["id"])) 
 
         pm_gen = gen_lookup[gen_id]
 
@@ -107,9 +107,9 @@
             bmax = 0.0
             for (n_name,b_name) in [("n1","b1"),("n2","b2"),("n3","b3"),("n4","b4"),("n5","b5"),("n6","b6"),("n7","b7"),("n8","b8")]
                 if shunt[b_name] <= 0.0
-                    bmin += shunt[n_name]*shunt[b_name]
+                    bmin += shunt[n_name]*shunt[b_name] # bmin = bmin + nt[n_name]*shunt[b_name]
                 else
-                    bmax += shunt[n_name]*shunt[b_name]
+                    bmax += shunt[n_name]*shunt[b_name] # bmax = bmax + nt[n_name]*shunt[b_name]
                 end
             end
             shunt["bmin"] = bmin/mva_base
@@ -127,15 +127,15 @@
     branch_ids = []
 
     for (i,cont) in enumerate(goc_data.contingencies)
-        if cont["component"] == "branch"
+        if cont["component"] == "branch" # Checks if there is branch contingency
             branch_id = (cont["i"], cont["j"], cont["ckt"])
             pm_branch = branch_lookup[branch_id]
-            push!(branch_ids, (idx=pm_branch["index"], label=cont["label"], type="branch"))
+            push!(branch_ids, (idx=pm_branch["index"], label=cont["label"], type="branch")) # Inserts idx, label, and type at the end of branch_ids
 
-        elseif cont["component"] == "generator"
+        elseif cont["component"] == "generator" # Checks if there is generator contingency
             gen_id = (cont["i"], cont["id"])
             pm_gen = gen_lookup[gen_id]
-            push!(generator_ids, (idx=pm_gen["index"], label=cont["label"], type="gen"))
+            push!(generator_ids, (idx=pm_gen["index"], label=cont["label"], type="gen")) # Inserts idx, label, and type at the end of generator_ids
 
         else
             error(LOGGER, "unrecognized contingency component type $(cont["component"]) at contingency $(i)")
